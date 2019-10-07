@@ -1,6 +1,6 @@
 #coding:utf-8
-from flask import Flask,render_template,flash,redirect,url_for
-from flask_sqlalchemy import flask_sqlalchemy
+from flask import Flask,render_template,flash,request,redirect,url_for
+from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
 from wtforms import StringField,SubmitField
 from wtforms.validators import DataRequired
@@ -10,7 +10,7 @@ app=Flask(__name__)
 
 class config(object):
     DEBUG=True
-    SQLALCHEMY_DATABASE_URI="mysql://root@127.0.0.1:3306/author_book"
+    SQLALCHEMY_DATABASE_URI="mysql://root:@127.0.0.1:3306/author_book"
     SQLALCHEMY_TRACK_MODFICATIONS=True
     SECRET_KEY="SSKLDJFOIEJSF"
 
@@ -22,14 +22,14 @@ db=SQLAlchemy(app)
 class Author(db.Model):
     __tablename__ = "authors"
     id = db.Column(db.Integer,primary_key=True)
-    name = db.Colunm(db.String(64),unique=True)
+    name = db.Column(db.String(64),unique=True)
     books = db.relationship("Book",backref="author")
 
 class Book(db.Model):
     __tablename__ = "books"
     id = db.Column(db.Integer,primary_key=True)
     name = db.Column(db.String(64),unique=True)
-    author_id = db.Column(db.Integer,db.ForeignKey(authors.id))
+    author_id = db.Column(db.Integer,db.ForeignKey(Author.id))
 
 class AuthorForm(FlaskForm):
     author = StringField('作者',validators=[DataRequired()])
@@ -39,7 +39,7 @@ class AuthorForm(FlaskForm):
 
 @app.route('/',methods=['GET','POST'])
 def index():
-    author_form = AuthorForm
+    author_form = AuthorForm()
     if author_form.validate_on_submit():
         author_name = author_form.author.data
         book_name = author_form.book.data
@@ -111,6 +111,14 @@ def delete_book(book_id):
     return redirect(url_for('index'))
 
 
-if if __name__ == "__main__":
+if __name__ == "__main__":
+    db.drop_all()
+    db.create_all()
+    au1 = Author(name="wang")
+    db.session.add_all(au1)
+    db.session.commit()
+    bk1 = Book(name="ww")
+    db.session.add_all(bk1)
+    db.session.commit()
     app.run()
-            
+
